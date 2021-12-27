@@ -1,6 +1,6 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-DOCKER_IMAGE ?= lambci/lambda-base-2:build
+DOCKER_IMAGE ?= lambda:latest
 TARGET ?=/opt/
 
 MOUNTS = -v $(PROJECT_ROOT):/var/task \
@@ -13,13 +13,16 @@ build result:
 clean:
 	rm -rf build result
 
-list-formats:
+docker:
+	docker build . -t lambda:latest
+
+list-formats: docker
 	$(DOCKER) $(MOUNTS) --entrypoint /opt/bin/identify -t $(DOCKER_IMAGE) -list format
 
-bash:
+bash: docker
 	$(DOCKER) $(MOUNTS) --entrypoint /bin/bash -t $(DOCKER_IMAGE)
 
-all libs: 
+all libs:  docker
 	$(DOCKER) $(MOUNTS) --entrypoint /usr/bin/make -t $(DOCKER_IMAGE) TARGET_DIR=$(TARGET) -f ../Makefile_ImageMagick $@
 
 
